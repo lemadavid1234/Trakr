@@ -16,6 +16,19 @@ This app is being built as a way to **learn and practice full-stack web developm
 | **Node.js + Express** | API server to handle requests between frontend and database |
 | **OpenAI API** | Used to provide smart workout suggestions and plan edits |
 
+## 🔁 TypeScript Migration
+
+**06/19/25** - Trakr was being written in .js/.jsx, but since has been fully migrated to **TypeScript**/.tsx. This overhaul was made to take advantage of:
+
+- Type safety - catch bugs at compile time, not runtime
+- Improved developer experience - with better IntelliSense and autocompletion
+- Scalability - as the app grows, TypeScript makes code easier to maintain and refactor
+- Industry alginment - most modern React codebases now use TypeScript by default
+
+    resources that helped with migration:
+    https://www.robinwieruch.de/vite-typescript/
+    https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts
+
 ## 🚧 Features (In Progress)
 
 - [ ] User signup/login (Firebase Auth)
@@ -27,11 +40,11 @@ This app is being built as a way to **learn and practice full-stack web developm
 ## 📚 Learning Goals
 
 - Build and deploy a full-stack web application from scratch
-- Understand component-based development using React
+- Understand component-based development using React + TypeScript
 - Learn backend integration using Node.js and MongoDB
 - Explore Firebase Auth and cloud tools
 - Experiment with AI integration using OpenAI's API
 
 ---
 
-> ⚠️ This project is in early development. The primary goal is **learning**, and feedback is welcome!
+> ⚠️ This project is in early development. The primary goal is **learning**, and **feedback** is welcome!

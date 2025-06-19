@@ -2,8 +2,8 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
+import { getAuth, type Auth } from "firebase/auth";
 
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -28,7 +28,7 @@ const app = initializeApp(firebaseConfig);
 export const analytics = getAnalytics(app);
 
 //Export Firebase Authentication Service - handles user sign-up, login, logout, etc
-export const auth = getAuth(app);
+export const auth: Auth = getAuth(app);
 
 //Export Firestore database service - read/write user data like workout logs or plans
-export const db = getFirestore(app);
+export const db: Firestore = getFirestore(app);

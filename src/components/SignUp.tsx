@@ -16,7 +16,7 @@ export default function SignUp() {
     //submit handler function
     //"function runs some code that takes time, like fetching data or talking to firebase,
     //so let's not block the rest of the app while we wait for it"
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         //prevents default form submission (which would reload the page)
         e.preventDefault();
 
@@ -31,7 +31,7 @@ export default function SignUp() {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             setSuccess("Account Created!");
             console.log("User: ", userCredential.user);
-        } catch (err) {
+        } catch (err: any) {
             //if firebase throws an error (ex: email already in use) catch it and show the error message
             setError(err.message);
         };
