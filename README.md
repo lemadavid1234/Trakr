@@ -31,9 +31,9 @@ This app is being built as a way to **learn and practice full-stack web developm
 
 ## 🚧 Features (In Progress)
 
-- [ ] User signup/login (Firebase Auth)
-- [ ] Workout logger (date, exercises, sets, reps, notes)
-- [ ] Progress history view
+- [x] User signup/login (Firebase Auth)
+- [x] Workout logger (date, exercises, sets, reps, notes)
+- [x] Progress history view
 - [ ] Ask AI: "Improve my workout"
 - [ ] AI-suggested routines based on goals
 
