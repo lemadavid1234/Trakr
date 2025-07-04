@@ -1,7 +1,7 @@
 import { signOut } from "firebase/auth"
 import { auth } from "../firebase"
-import WorkoutForm from "./WorkoutForm"
-import WorkoutList from "./WorkoutList"
+import WorkoutForm from "../components/WorkoutForm"
+import WorkoutList from "../components/WorkoutList"
 // Dashboard where user will be sent to once authenticated
 
 export default function Dashboard() {

@@ -4,9 +4,9 @@ import { auth } from "./firebase";
 import type { User } from "firebase/auth"
 
 //importing components
-import SignUp from "./components/SignUp";
-import Dashboard from "./components/Dashboard";
-import Login from "./components/Login";
+import SignUp from "./pages/SignUp";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
 
 
 function App() {
