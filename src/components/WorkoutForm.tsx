@@ -2,6 +2,18 @@ import { useState, useEffect } from "react"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { db, auth } from "../firebase"
 
+type Set = {
+    weight: string;
+    reps: string;
+};
+
+type Exercise = {
+    name: string;
+    sets: Set[];
+    notes?: string;
+}
+
+
 export default function WorkoutForm() {
 
     const [date, setDate] = useState("");
@@ -15,7 +27,11 @@ export default function WorkoutForm() {
     //initalize exercises with a default value
     //default value is array, with one object that has empty fields for name, sets, reps, and notes
     const [exercises, setExercises] = useState([ 
-        { name: "", sets: "", reps: "", notes: ""  }
+        {
+            name: "",
+            sets: [{ weight: "", reps: "" }],
+            notes: ""
+        }
     ]);
 
     const [success, setSuccess] = useState("");
@@ -30,25 +46,53 @@ export default function WorkoutForm() {
     //update a single field of an exercise in the list
     //handleChange(0, "name", "bench press")
     //results in exercises[0].name = "bench press"
-    const handleChange = (index: number, field: string, value: string) => {
+    const handleChange = (exerciseIndex: number, field: string, value: string) => {
         const updated = [...exercises];
-        updated[index][field as keyof typeof updated[0]] = value;
+        if (field === 'name') {
+            updated[exerciseIndex].name = value;
+        } else if (field === 'notes') {
+            updated[exerciseIndex].notes = value;
+        }
+        setExercises(updated);
+    };
+
+    const handleSetChange = (exerciseIndex: number, setIndex: number, field: string, value: string) => {
+        const updated = [...exercises];
+        updated[exerciseIndex].sets[setIndex][field as keyof Set] = value;
         setExercises(updated);
     };
 
     //add blank exercise to list of exercises (exercises)
     const addExercise = () => {
-        setExercises([...exercises, {name: "", sets: "", reps: "", notes: ""}])
+        setExercises([...exercises, {
+            name: "", 
+            sets: [{ weight: "", reps: "" }],
+            notes: ""
+        }]);
     };
 
+    const addSet = (exerciseIndex: number) => {
+        const updated = [...exercises];
+        updated[exerciseIndex].sets.push({ weight: "", reps: "" });
+        setExercises(updated);
+    }
+
+    const removeSet = (exerciseIndex: number, setIndex: number) => {
+        const updated = [...exercises];
+        updated[exerciseIndex].sets.splice(setIndex, 1);
+        setExercises(updated);
+    }
+
+
     //return a new array containing only the items where current index i is not equal to the one we want to remove
-    const removeExercise = (index: number) => {
-        const updated = exercises.filter((_, i) => i !== index);
+    const removeExercise = (exerciseIndex: number) => {
+        const updated = exercises.filter((_, i) => i !== exerciseIndex);
         setExercises(updated);
     };
 
     //save entire session as one document in Firestore
     const handleSubmit = async (e: React.FormEvent) => {
+        //prevent default form submission behavior
         e.preventDefault();
         setSuccess("");
         setError("");
@@ -63,28 +107,34 @@ export default function WorkoutForm() {
             await addDoc(collection(db, "workoutSessions"), {
                 userId: user.uid,
                 date,
-                exercises,
+                //exercises is an array of Exercise objects that contains Set objects
+                exercises: exercises.map(exercise => ({
+                    name: exercise.name,
+                    sets: exercise.sets.map(set => ({
+                        weight: set.weight,
+                        reps: set.reps,
+                    })),
+                    notes: exercise.notes
+                })),
                 createdAt: serverTimestamp(),
             });
 
             setSuccess("Workout Saved!");
             setDate("");
-            setExercises([{name: "", sets: "", reps: "", notes: ""}]);
+            setExercises([{name: "", sets: [{ weight: "", reps: ""}], notes: ""}])
         } catch (err: any) {
             setError(err.message);
         }
     };
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="bg-white p-6 rounded-xl shadow-md w-full max-w-md space-y-4"
-        >
-            <h2 className="text-xl font-bold text-gray-800">Log Your Workout</h2>
 
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl w-full max-w-wd space-y-4">
+            <h2 className="text-xl font-bold text-gray-800">Log Your Workout"</h2>
+ 
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {success && <p className="text-green-500 text-sm">{success}</p>}
-            
+
             <input
                 type="date"
                 value={date}
@@ -92,69 +142,94 @@ export default function WorkoutForm() {
                 className="w-full p-2 border rounded"
                 required
             />
-            
-            {exercises.map((exercise, idx) => (
-                <div key={idx} className="space-y-2 border-b pb-4">
-                    <input
-                        type="text"
-                        placeholder="Exercise"
-                        value={exercise.name}
-                        onChange={(e) => handleChange(idx, "name", e.target.value)}
-                        className="w-full p-2 border rounded"
-                        required
-                    />
 
-                    <input 
-                        type="number"
-                        placeholder="Sets"
-                        value={exercise.sets}
-                        onChange={(e) => handleChange(idx, "sets", e.target.value)}
-                        className="w-full p-2 border rounded"
-                        required
-                    />
+            {exercises.map((exercise, exerciseIdx) => (
+                <div key={exerciseIdx} className="space-y-4 border-b pb-6">
+                    <div className="flex justify-between items-center">
+                        <input
+                            type="name"
+                            placeholder="Exercise Name"
+                            value={exercise.name}
+                            onChange={(e)=> handleChange(exerciseIdx, "name", e.target.value)}
+                            className="flex-1 p-2 border rounded mr-2"
+                            required
+                        />
+                        {exercises.length > 1 && (
+                            <button
+                                type="button"
+                                onClick={() => removeExercise(exerciseIdx)}
+                                className="text-red-500 text-sm px-2 py-1 hover:bg-red-600"
+                            >
+                                Delete Exercise
+                            </button>
+                        )}
+                    </div>
 
-                    <input
-                        type="number"
-                        placeholder="Reps"
-                        value={exercise.reps}
-                        onChange={(e) => handleChange(idx, "reps", e.target.value)}
-                        className="w-full p-2 border rounded"
-                        required
-                    />
+                    <div className="ml-4 space-y-3">
+                        <h4 className="font-medium text-gray-700">Sets:</h4>
+                        {exercise.sets.map((set, setIdx) => (
+                            <div key={setIdx} className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">Set {setIdx + 1}</span>
+                                <input
+                                    type="number"
+                                    value={set.weight}
+                                    onChange={(e) => handleSetChange(exerciseIdx, setIdx, "weight", e.target.value)}
+                                    className="w-20 p-2 border rounded"
+                                    required
+                                />
+                                <span className="text-sm text-gray-600">lbs</span>
+                                <input
+                                    type="number"
+                                    value={set.reps}
+                                    onChange={(e) => handleSetChange(exerciseIdx, setIdx, "reps", e.target.value)}
+                                    className="w-20 p-2 border rounded"
+                                    required
+                                />
+                                <span className="text-sm text-gray-600">reps</span>
+                                {exercise.sets.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => removeSet(exerciseIdx, setIdx)}  
+                                        className="text-red-500 text-sm px-2 py-1 hover:bg-red-50 rounded"  
+                                    >
+                                        -
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => addSet(exerciseIdx)}
+                            className="text-blue-500 text-sm hover:underline"
+                        >
+                            + Add Set
+                        </button>
+                    </div>
 
                     <textarea
                         placeholder="Notes (optional)"
                         value={exercise.notes}
-                        onChange={(e) => handleChange(idx, "notes", e.target.value)}
+                        onChange={(e) => handleChange(exerciseIdx, "notes", e.target.value)}
                         className="w-full p-2 border rounded"
-                    ></textarea>
-
-                    {exercises.length > 1 && (
-                        <button
-                            type="button"
-                            onClick={() => removeExercise(idx)}
-                            className="text-red-500 text-sm"
-                        >
-                            Remove Exercise
-                        </button>
-                    )}
+                    />
                 </div>
             ))}
-            
+
             <button
                 type="button"
                 onClick={addExercise}
-                className="w=full bg-gray-300 text-gray-800 p-2 rounded hover:bg-gray-400"
+                className="w-full bg-gray-300 text-gray-800 p-2 rounded hover:bg-gray-400"
             >
-                + Add Another Exercise
+                + Add Excercise
             </button>
-            
+
             <button
                 type="submit"
                 className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
             >
                 Save Workout
             </button>
+
 
         </form>
     );

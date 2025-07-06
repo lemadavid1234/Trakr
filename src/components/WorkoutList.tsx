@@ -2,17 +2,50 @@ import { useEffect, useState } from "react";
 import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
 import { db, auth } from "../firebase"
 
+/*
+EXAMPLE DATA:
+{
+  id: "workout_123",
+  userId: "user_456",
+  date: "2024-01-15",
+  exercises: [
+    {
+      name: "Bench Press",
+      sets: [
+        { weight: 185, reps: 8 },
+        { weight: 185, reps: 8 },
+        { weight: 175, reps: 8 }
+      ],
+      notes: "Felt heavy today"
+    },
+    {
+      name: "Squats",
+      sets: [
+        { weight: 225, reps: 5 },
+        { weight: 225, reps: 5 },
+        { weight: 225, reps: 5 }
+      ]
+    }
+  ],
+}
+*/
+
+type Set = {
+    weight: number;
+    reps: number;
+};
+
+type Exercise = {
+    name: string;
+    sets: Set[];
+    notes?: string;
+};
 
 //defines structure of each workout so tsx can give autocomplete & type checking
 type WorkoutSession = {
     id: string; //from firestore's doc ID
     date: string;
-    exercises: {
-        name: string;
-        sets: number;
-        reps: number;
-        notes?: string;
-    }[];
+    exercises: Exercise[];
 };
 
 export default function WorkoutList() {
@@ -73,11 +106,27 @@ export default function WorkoutList() {
                     >
                         <p className="text-sm text-gray-500">{session.date}</p>
                         <ul className="mt-2 space-y-1">
-                            {session.exercises.map((ex, idx) => (
-                                <li key={idx} className="text-sm text-gray-700">
-                                    • <strong>{ex.name}</strong>: {ex.sets}*{ex.reps}
-                                    {ex.notes && <span className="italic text-gray-500"> - {ex.notes}</span>} 
-                                </li>
+                            {session.exercises.map((exercise, exerciseIdx) => (
+                              <div key={exerciseIdx} className="mb-3">
+                                <h4 className="font-semibold text-gray-800 mb-2">
+                                    {exercise.name}
+                                </h4>
+                                <div className="ml-4 space-y-1">
+                                    {exercise.sets.map((set, setIdx) => (
+                                        <div key={setIdx} className="text-sm text-gray-600 flex items-center gap-2">
+                                            <span className="text-gray-500">Set {setIdx + 1}:</span>
+                                            <span className="font-medium">{set.weight} lbs</span>
+                                            <span>×</span>
+                                            <span className="font-medium">{set.reps} reps</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                {exercise.notes && (
+                                    <p className="ml-4 text-xs text-gray-500 italic mt-1">
+                                        Note: {exercise.notes}
+                                    </p>
+                                )}
+                              </div>
                             ))}
                         </ul>
                     </div>
