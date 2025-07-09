@@ -2,16 +2,13 @@ import { useState, useEffect } from "react"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { db, auth } from "../firebase"
 
+import ExerciseSearch from "./ExerciseSearch";
+
+
 type Set = {
     weight: string;
     reps: string;
 };
-
-type Exercise = {
-    name: string;
-    sets: Set[];
-    notes?: string;
-}
 
 
 export default function WorkoutForm() {
@@ -146,14 +143,15 @@ export default function WorkoutForm() {
             {exercises.map((exercise, exerciseIdx) => (
                 <div key={exerciseIdx} className="space-y-4 border-b pb-6">
                     <div className="flex justify-between items-center">
-                        <input
-                            type="name"
-                            placeholder="Exercise Name"
-                            value={exercise.name}
-                            onChange={(e)=> handleChange(exerciseIdx, "name", e.target.value)}
-                            className="flex-1 p-2 border rounded mr-2"
-                            required
-                        />
+                        <div className="flex-1 mr-2">
+                            <ExerciseSearch
+                                currentValue={exercise.name}
+                                onChange={(value) => handleChange(exerciseIdx, "name", value)}
+                                onSelect={(exerciseName) => {
+                                    handleChange(exerciseIdx, "name", exerciseName);
+                                }}
+                            />
+                        </div>
                         {exercises.length > 1 && (
                             <button
                                 type="button"
