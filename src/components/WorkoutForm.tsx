@@ -2,19 +2,29 @@ import { useState, useEffect } from "react"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { db, auth } from "../firebase"
 
+import ExerciseSearch from "./ExerciseSearch";
+
+
 type Set = {
     weight: string;
     reps: string;
 };
 
 type Exercise = {
+    id: string;
     name: string;
+    category?: string;
+    primaryMuscles?: string[];
+    secondaryMuscles?: string[];
+    images?: string[];
     sets: Set[];
     notes?: string;
-}
+};
+
 
 
 export default function WorkoutForm() {
+
 
     const [date, setDate] = useState("");
     
@@ -26,9 +36,14 @@ export default function WorkoutForm() {
     */
     //initalize exercises with a default value
     //default value is array, with one object that has empty fields for name, sets, reps, and notes
-    const [exercises, setExercises] = useState([ 
+    const [exercises, setExercises] = useState<Exercise[]>([ 
         {
+            id: "",
             name: "",
+            category: "",
+            primaryMuscles: [],
+            secondaryMuscles: [],
+            images: [],
             sets: [{ weight: "", reps: "" }],
             notes: ""
         }
@@ -65,7 +80,12 @@ export default function WorkoutForm() {
     //add blank exercise to list of exercises (exercises)
     const addExercise = () => {
         setExercises([...exercises, {
-            name: "", 
+            id: "",
+            name: "",
+            category: "",
+            primaryMuscles: [],
+            secondaryMuscles: [],
+            images: [], 
             sets: [{ weight: "", reps: "" }],
             notes: ""
         }]);
@@ -87,6 +107,16 @@ export default function WorkoutForm() {
     //return a new array containing only the items where current index i is not equal to the one we want to remove
     const removeExercise = (exerciseIndex: number) => {
         const updated = exercises.filter((_, i) => i !== exerciseIndex);
+        setExercises(updated);
+    };
+
+    const handleSelectExercise = (exerciseIdx: number, exercise: any) => {
+        const updated = [...exercises];
+        updated[exerciseIdx] = {
+            ...updated[exerciseIdx],
+            ...exercise,    //merge all exercise fields (name, images, etc)
+            sets: updated[exerciseIdx].sets || [{ weight: "", reps: ""}] //always ensure sets exists
+        };
         setExercises(updated);
     };
 
@@ -121,7 +151,12 @@ export default function WorkoutForm() {
 
             setSuccess("Workout Saved!");
             setDate("");
-            setExercises([{name: "", sets: [{ weight: "", reps: ""}], notes: ""}])
+            setExercises([{
+                id: "",
+                name: "",
+                sets: [{ weight: "", reps: ""}],
+                notes: ""
+            }])
         } catch (err: any) {
             setError(err.message);
         }
@@ -129,8 +164,8 @@ export default function WorkoutForm() {
 
     return (
 
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl w-full max-w-wd space-y-4">
-            <h2 className="text-xl font-bold text-gray-800">Log Your Workout"</h2>
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl w-full max-w-2xl mx-auto space-y-4">
+            <h2 className="text-xl font-bold text-gray-800">Log Your Workout</h2>
  
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {success && <p className="text-green-500 text-sm">{success}</p>}
@@ -146,14 +181,13 @@ export default function WorkoutForm() {
             {exercises.map((exercise, exerciseIdx) => (
                 <div key={exerciseIdx} className="space-y-4 border-b pb-6">
                     <div className="flex justify-between items-center">
-                        <input
-                            type="name"
-                            placeholder="Exercise Name"
-                            value={exercise.name}
-                            onChange={(e)=> handleChange(exerciseIdx, "name", e.target.value)}
-                            className="flex-1 p-2 border rounded mr-2"
-                            required
-                        />
+                        <div className="flex-1 mr-2">
+                            <ExerciseSearch
+                                currentValue={exercise.name}
+                                onChange={(value) => handleChange(exerciseIdx, "name", value)}
+                                onSelect={(exercise) => handleSelectExercise(exerciseIdx, exercise)}
+                            />
+                        </div>
                         {exercises.length > 1 && (
                             <button
                                 type="button"
@@ -164,6 +198,20 @@ export default function WorkoutForm() {
                             </button>
                         )}
                     </div>
+
+                    {/* display exercise image or images if they exist */}
+                    {exercise.images && exercise.images.length > 0 && (
+                        <div className="w-full flex gap-2">
+                            {exercise.images.map((img, idx) => (
+                                <img
+                                    key={idx}
+                                    src={`https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/${img}`}
+                                    alt={exercise.name}
+                                    className="flex-1 h-32 object-contain"
+                                />
+                            ))}
+                        </div>
+                    )}
 
                     <div className="ml-4 space-y-3">
                         <h4 className="font-medium text-gray-700">Sets:</h4>
